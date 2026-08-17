@@ -40,20 +40,20 @@ class OpportunityAnalyzer:
         return {
             "项目类型": types[0] if types else "未识别",
             "施工方向": project.construction_content or "待人工确认",
-            "潜在预制产品": matched,
+            "潜在产品或服务": matched,
             "匹配理由": "；".join(reasons) or "未命中产品知识库关键词",
             "机会评分0-100": min(score, rules.get("max_score", 100)),
             "证据等级": strongest, "置信度": confidence, "命中证据": evidence,
         }
     def _openai(self, project: Project) -> dict:
         from openai import OpenAI
-        schema = '{"项目类型":"", "施工方向":"", "潜在预制产品":[], "匹配理由":"", "机会评分0-100":0}'
-        prompt = f"根据公告和产品知识库判断预制构件机会。仅输出严格 JSON，结构为 {schema}\n公告：{project.raw_text[:12000]}\n知识库：{json.dumps(self.cfg, ensure_ascii=False)}"
+        schema = '{"项目类型":"", "施工方向":"", "潜在产品或服务":[], "匹配理由":"", "机会评分0-100":0}'
+        prompt = f"根据公告和行业机会知识库判断潜在业务机会。仅输出严格 JSON，结构为 {schema}\n公告：{project.raw_text[:12000]}\n知识库：{json.dumps(self.cfg, ensure_ascii=False)}"
         response = OpenAI().responses.create(model=os.getenv("OPENAI_MODEL", "gpt-5-mini"), input=prompt)
         return json.loads(response.output_text)
     def apply(self, project: Project) -> Project:
         result = self.analyze(project)
         project.ai_score = int(result["机会评分0-100"])
-        project.matched_products = result["潜在预制产品"]
+        project.matched_products = result.get("潜在产品或服务", result.get("潜在预制产品", []))
         project.analysis_json = json.dumps(result, ensure_ascii=False)
         return project

@@ -8,6 +8,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from .base import BaseCollector
+from .regions import target_region_codes, target_regions
 from ..models import Project
 
 log = logging.getLogger(__name__)
@@ -54,7 +55,7 @@ class CCCCCollector(BaseCollector):
 
     def _search(self, keyword: str) -> list[dict]:
         payload = {
-            "provinceList": self.source.get("region_codes", []), "pageNo": 1, "pageSize": self.limit,
+            "provinceList": target_region_codes(self.source.get("regions")), "pageNo": 1, "pageSize": self.limit,
             "noticeType": 1, "mergePurchaseTypeList": [], "noticeTitle": "",
             "singUpStatus": "", "dataSourceFlag": None, "keyWord": keyword,
             "schemeClass": None, "agentId": self.agent_id,
@@ -91,7 +92,7 @@ class CCCCCollector(BaseCollector):
         return published >= date.today() - timedelta(days=self.lookback_days)
 
     def _region_allowed(self, province_name: str) -> bool:
-        allowed = set(self.source.get("regions", []))
+        allowed = set(target_regions(self.source.get("regions")))
         if not allowed:
             return True
         actual = {part.strip() for part in (province_name or "").split(",") if part.strip()}

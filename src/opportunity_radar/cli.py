@@ -3,7 +3,7 @@ from datetime import datetime
 from .ai import OpportunityAnalyzer
 from .auth import LoginManager
 from .collectors import MockCollector, COLLECTORS
-from .config import DATA_DIR, ensure_dirs, load_yaml
+from .config import DATA_DIR, ensure_dirs, load_profile, load_yaml, profile_keywords
 from .db import Database
 from .logging_config import setup_logging
 from .report import generate_daily
@@ -20,8 +20,12 @@ def cmd_login(args):
     if not source: raise SystemExit(f"未知数据源：{args.source_id}")
     print(f"登录状态已保存：{LoginManager(DATA_DIR / 'auth').manual_login(source)}")
 def cmd_run(args):
-    db = database(); db.init(); analyzer = OpportunityAnalyzer(load_yaml("products.yaml")); count = 0
-    for source in sources():
+    profile = load_profile()
+    db = database(); db.init(); analyzer = OpportunityAnalyzer(profile); count = 0
+    for configured_source in sources():
+        source = dict(configured_source)
+        if source.get("keywords_from_profile"):
+            source["keywords"] = profile_keywords(profile)
         if not source.get("enabled", True): continue
         if args.source and source["id"] not in args.source: continue
         collector = MockCollector(source) if args.mock else COLLECTORS[source["id"]](source)

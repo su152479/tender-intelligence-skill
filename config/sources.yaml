@@ -3,48 +3,45 @@ sources:
     name: 中交集团供应链管理信息系统
     url: https://sp.iccec.cn/
     public_url: https://zjzcw.iccec.cn/
-    regions: [北京市, 天津市, 河北省]
-    region_codes: ['110000', '120000', '130000']
+    regions: []
     login: manual_playwright
     collection: playwright_public
     enabled: true
-    keywords: [箱梁, 管片, PC构件, 风塔, 圆形顶管, 矩形顶管, 水工预制件]
+    keywords_from_profile: true
   - id: cscec_yzw
     name: 中建云筑网
     url: https://www.yzw.cn/
     search_url: https://xy.yzw.cn/business-opportunity/searcher
     login_url: https://xy.yzw.cn/business-opportunity/searcher?tab=bid-purchase
     login_success_url_contains: xy.yzw.cn/
-    regions: [北京市, 天津市, 河北省]
-    region_codes: ['110000', '120000', '130000']
+    regions: []
     login: manual_playwright
     collection: playwright
     enabled: true
-    keywords: [箱梁, 管片, PC构件, 风塔, 圆形顶管, 矩形顶管, 水工预制件]
+    keywords_from_profile: true
   - id: crecg_luban
     name: 中铁鲁班网
     url: https://www.crecgec.com/
     public_url: https://www.crecgec.com/
-    regions: [北京市, 天津市, 河北省]
-    region_codes: ['110000', '120000', '130000']
+    regions: []
     login: none_public
     collection: requests_html
     enabled: true
-    keywords: [箱梁, 管片, PC构件, 风塔, 圆形顶管, 矩形顶管, 水工预制件]
+    keywords_from_profile: true
   - id: crcc_ec
     name: 铁建云采
     url: https://www.crccep.com/
     login: manual_playwright
     collection: playwright
     enabled: true
-    keywords: [箱梁, 管片, PC构件, 顶管]
+    keywords_from_profile: true
   - id: powerchina
     name: 中电建物资采购平台
     url: https://ec.powerchina.cn/
     login: manual_playwright
     collection: playwright
     enabled: true
-    keywords: [风塔, 水工预制件, 预制构件, 管片]
+    keywords_from_profile: true
   - id: beijing_ggzy
     name: 北京市公共资源交易服务平台
     url: https://ggzyfw.beijing.gov.cn/
@@ -58,8 +55,7 @@ sources:
     name: 中国政府采购网
     url: https://www.ccgp.gov.cn/
     list_url: https://www.ccgp.gov.cn/cggg/dfgg/gkzb/
-    regions: [北京市, 天津市, 河北省]
-    region_labels: [北京, 天津, 河北]
+    regions: []
     login: none_public
     collection: requests_html
     enabled: true

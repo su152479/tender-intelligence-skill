@@ -8,7 +8,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from .base import BaseCollector
-from .regions import infer_region, is_jing_jin_ji
+from .regions import infer_region, is_target_region
 from ..models import Project
 
 log = logging.getLogger(__name__)
@@ -53,11 +53,12 @@ class CRECGLubanCollector(BaseCollector):
             combined = f"{title}\n{row_text}"
             if not title or url in seen or not any(keyword in combined for keyword in keywords):
                 continue
-            if not is_jing_jin_ji(combined) or not self._is_recent(published):
+            allowed_regions = self.source.get("regions")
+            if not is_target_region(combined, allowed_regions) or not self._is_recent(published):
                 continue
             seen.add(url)
             projects.append(Project(
-                name=title, publish_date=published, region=infer_region(combined),
+                name=title, publish_date=published, region=infer_region(combined, allowed_regions),
                 tenderer=self._tenderer(title), stage="采购公告",
                 construction_content=row_text, source_site=self.source["name"],
                 url=url, raw_text=combined,
@@ -80,4 +81,3 @@ class CRECGLubanCollector(BaseCollector):
             if pos >= 0:
                 return title[:pos + len(suffix)]
         return ""
-

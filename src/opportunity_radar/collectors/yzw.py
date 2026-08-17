@@ -6,7 +6,7 @@ from urllib.parse import quote
 from playwright.sync_api import sync_playwright
 
 from .base import BaseCollector
-from .regions import infer_region, is_jing_jin_ji
+from .regions import infer_region, is_target_region
 from ..auth import LoginManager
 from ..config import DATA_DIR
 from ..models import Project
@@ -65,7 +65,8 @@ class CSCECYunZhuCollector(BaseCollector):
             area = row.get("area", "")
             categories = "、".join(row.get("purchaserCategoryList") or [])
             combined = "\n".join(filter(None, [title, area, categories, row.get("secondLevelCoopCategory", "")]))
-            if not title or not is_jing_jin_ji(area):
+            allowed_regions = self.source.get("regions")
+            if not title or not is_target_region(area, allowed_regions):
                 continue
             tender_code = row.get("tenderCode", "")
             source = row.get("source", "")
@@ -78,7 +79,7 @@ class CSCECYunZhuCollector(BaseCollector):
                 name=title,
                 project_no=tender_code,
                 publish_date=(row.get("publishDate") or "")[:10],
-                region=infer_region(area),
+                region=infer_region(area, allowed_regions),
                 tenderer=row.get("tenderCompanyName", ""),
                 stage="招标采购",
                 construction_content=categories or row.get("secondLevelCoopCategory", ""),
@@ -86,7 +87,7 @@ class CSCECYunZhuCollector(BaseCollector):
                 url=detail_url,
                 raw_text=combined,
             ))
-        log.info("云筑关键词接口结果 keyword=%s total=%s jingjinji=%s", keyword, len(records), len(projects))
+        log.info("云筑关键词接口结果 keyword=%s total=%s target_regions=%s", keyword, len(records), len(projects))
         return projects
 
     def _ensure_logged_in(self, page) -> None:
@@ -107,12 +108,13 @@ class CSCECYunZhuCollector(BaseCollector):
         for row in rows:
             title, text, url = row.get("title", ""), row.get("text", ""), row.get("href", "")
             combined = f"{title}\n{text}"
-            if not title or not url or keyword not in combined or not is_jing_jin_ji(combined):
+            allowed_regions = self.source.get("regions")
+            if not title or not url or keyword not in combined or not is_target_region(combined, allowed_regions):
                 continue
             match = re.search(r"20\d{2}[-/.年]\d{1,2}[-/.月]\d{1,2}", combined)
             published = match.group(0).replace("年", "-").replace("月", "-").replace("日", "").replace("/", "-").replace(".", "-") if match else ""
             projects.append(Project(
-                name=title, publish_date=published, region=infer_region(combined),
+                name=title, publish_date=published, region=infer_region(combined, allowed_regions),
                 stage="招标公告", construction_content=text,
                 source_site=self.source["name"], url=url, raw_text=combined,
             ))

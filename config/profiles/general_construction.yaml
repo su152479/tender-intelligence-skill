@@ -1,0 +1,51 @@
+products:
+  - name: 预制构件
+    direct_keywords: [预制构件, 预制梁, 管片, PC构件, 预制管, 预制墙板]
+    method_keywords: [装配式施工, 构件预制, 预制安装, 架梁, 盾构]
+    direction_keywords: [桥梁工程, 轨道交通, 房屋建筑, 市政管网]
+    project_types: [桥梁, 轨道交通, 房建, 市政]
+
+  - name: 钢结构
+    direct_keywords: [钢结构, 钢梁, 钢箱梁, 钢桁架, 网架]
+    method_keywords: [钢结构安装, 钢结构吊装, 焊接施工]
+    direction_keywords: [工业厂房, 体育场馆, 会展中心, 大跨度建筑]
+    project_types: [房建, 工业建筑, 桥梁]
+
+  - name: 管材管件
+    direct_keywords: [钢筋混凝土管, 球墨铸铁管, PE管, 预应力混凝土管, 管件]
+    method_keywords: [管道安装, 顶管施工, 非开挖施工]
+    direction_keywords: [给水管网, 排水管网, 污水管网, 再生水管网]
+    project_types: [市政管网, 水务]
+
+  - name: 防水材料
+    direct_keywords: [防水卷材, 防水涂料, 止水带, 防水板, 密封材料]
+    method_keywords: [防水施工, 防渗施工, 隧道防水]
+    direction_keywords: [地下工程, 隧道工程, 屋面工程, 水池工程]
+    project_types: [房建, 隧道, 水利]
+
+  - name: 机电设备
+    direct_keywords: [水泵, 风机, 变压器, 开关柜, 配电柜, 泵站设备]
+    method_keywords: [机电安装, 电气安装, 设备安装]
+    direction_keywords: [泵站, 污水处理厂, 轨道交通车站, 工业厂房]
+    project_types: [机电, 水务, 工业工程]
+
+  - name: 工程机械
+    direct_keywords: [盾构机, 架桥机, 起重机, 塔式起重机, 混凝土泵车]
+    method_keywords: [机械设备租赁, 施工设备采购, 特种设备安装]
+    direction_keywords: [盾构施工, 架梁施工, 大型吊装, 土方施工]
+    project_types: [施工装备, 隧道, 桥梁]
+
+  - name: 水泥混凝土材料
+    direct_keywords: [商品混凝土, 预拌混凝土, 水泥, 灌浆料, 砂浆]
+    method_keywords: [混凝土浇筑, 灌浆施工, 路面施工]
+    direction_keywords: [主体结构, 道路工程, 桥梁工程, 水利工程]
+    project_types: [房建, 公路, 桥梁, 水利]
+
+rules:
+  direct_product_score: 90
+  construction_method_score: 75
+  direction_inference_score: 55
+  title_evidence_bonus: 3
+  multiple_product_bonus: 5
+  max_score: 100
+

@@ -9,6 +9,7 @@ from bs4 import BeautifulSoup
 from .base import BaseCollector
 from .construction import evidence_excerpt, has_opportunity_direction, is_construction_tender
 from .http import PublicPageClient
+from .regions import infer_region, target_region_labels
 from ..models import Project
 
 log = logging.getLogger(__name__)
@@ -26,6 +27,7 @@ class CCGPCollector(BaseCollector):
 
     def collect(self) -> list[Project]:
         entries: dict[str, tuple[str, str, str, str]] = {}
+        allowed_labels = set(target_region_labels(self.source.get("regions")))
         stop = False
         for page in range(1, self.max_pages + 1):
             url = urljoin(self.list_url, "index.htm" if page == 1 else f"index_{page}.htm")
@@ -34,7 +36,7 @@ class CCGPCollector(BaseCollector):
                 if not self._is_recent(published):
                     stop = True
                     continue
-                if region in self.source.get("region_labels", []) and is_construction_tender(title):
+                if region in allowed_labels and is_construction_tender(title):
                     entries[detail_url] = (title, published, region, owner)
             if stop:
                 break
@@ -71,7 +73,7 @@ class CCGPCollector(BaseCollector):
         project_no = self._match(r"项目编号[：:]\s*([^\s，,。]+)", raw_text)
         return Project(
             name=title, project_no=project_no, publish_date=published,
-            region={"北京": "北京市", "天津": "天津市", "河北": "河北省"}.get(region, region),
+            region=infer_region(region) or region,
             owner=owner, tenderer=owner, stage="政府采购公开招标公告",
             construction_content=evidence_excerpt(raw_text), source_site=self.source["name"],
             url=url, raw_text=raw_text,

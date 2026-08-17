@@ -10,7 +10,8 @@ def generate_daily(rows, output_dir: Path) -> Path:
     lines = [f"# 工程项目机会雷达日报（{date.today().isoformat()}）", "", "## 今日重点机会", ""]
     for row in rows:
         a = json.loads(row["analysis_json"] or "{}")
-        lines += [f"### {row['project_name']}", "", f"- 地区：{row['region'] or '未知'}", f"- 工程类型：{a.get('项目类型', '未识别')}", f"- 可能产品：{'、'.join(a.get('潜在预制产品', [])) or '无'}", f"- 评分：{row['ai_score']}", f"- 证据等级：{a.get('证据等级', '未标注')}（置信度：{a.get('置信度', '未知')}）", f"- 推荐理由：{a.get('匹配理由', '无')}", f"- 来源：[{row['source_site']}]({row['url']})", ""]
+        opportunities = a.get("潜在产品或服务", a.get("潜在预制产品", []))
+        lines += [f"### {row['project_name']}", "", f"- 地区：{row['region'] or '未知'}", f"- 工程类型：{a.get('项目类型', '未识别')}", f"- 潜在产品或服务：{'、'.join(opportunities) or '无'}", f"- 评分：{row['ai_score']}", f"- 证据等级：{a.get('证据等级', '未标注')}（置信度：{a.get('置信度', '未知')}）", f"- 推荐理由：{a.get('匹配理由', '无')}", f"- 来源：[{row['source_site']}]({row['url']})", ""]
     if not rows: lines += [f"今日暂无评分达到 {minimum_score} 分的重点机会。", ""]
     path.write_text("\n".join(lines), encoding="utf-8")
     return path

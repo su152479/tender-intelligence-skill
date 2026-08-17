@@ -1,0 +1,33 @@
+regions:
+  北京市: {code: '110000', label: 北京, markers: [北京]}
+  天津市: {code: '120000', label: 天津, markers: [天津, 滨海新区]}
+  河北省: {code: '130000', label: 河北, markers: [河北, 雄安, 石家庄, 唐山, 秦皇岛, 邯郸, 邢台, 保定, 张家口, 承德, 沧州, 廊坊, 衡水]}
+  山西省: {code: '140000', label: 山西, markers: [山西, 太原, 大同, 长治, 临汾]}
+  内蒙古自治区: {code: '150000', label: 内蒙古, markers: [内蒙古, 呼和浩特, 包头, 鄂尔多斯]}
+  辽宁省: {code: '210000', label: 辽宁, markers: [辽宁, 沈阳, 大连, 鞍山]}
+  吉林省: {code: '220000', label: 吉林, markers: [吉林省, 长春, 吉林市]}
+  黑龙江省: {code: '230000', label: 黑龙江, markers: [黑龙江, 哈尔滨, 大庆]}
+  上海市: {code: '310000', label: 上海, markers: [上海]}
+  江苏省: {code: '320000', label: 江苏, markers: [江苏, 南京, 苏州, 无锡, 常州, 徐州, 南通]}
+  浙江省: {code: '330000', label: 浙江, markers: [浙江, 杭州, 宁波, 温州, 绍兴, 嘉兴]}
+  安徽省: {code: '340000', label: 安徽, markers: [安徽, 合肥, 芜湖, 蚌埠]}
+  福建省: {code: '350000', label: 福建, markers: [福建, 福州, 厦门, 泉州]}
+  江西省: {code: '360000', label: 江西, markers: [江西, 南昌, 赣州, 九江]}
+  山东省: {code: '370000', label: 山东, markers: [山东, 济南, 青岛, 烟台, 潍坊, 临沂]}
+  河南省: {code: '410000', label: 河南, markers: [河南, 郑州, 洛阳, 开封, 新乡]}
+  湖北省: {code: '420000', label: 湖北, markers: [湖北, 武汉, 宜昌, 襄阳]}
+  湖南省: {code: '430000', label: 湖南, markers: [湖南, 长沙, 株洲, 湘潭, 岳阳]}
+  广东省: {code: '440000', label: 广东, markers: [广东, 广州, 深圳, 佛山, 东莞, 珠海]}
+  广西壮族自治区: {code: '450000', label: 广西, markers: [广西, 南宁, 柳州, 桂林]}
+  海南省: {code: '460000', label: 海南, markers: [海南, 海口, 三亚]}
+  重庆市: {code: '500000', label: 重庆, markers: [重庆]}
+  四川省: {code: '510000', label: 四川, markers: [四川, 成都, 绵阳, 德阳, 宜宾]}
+  贵州省: {code: '520000', label: 贵州, markers: [贵州, 贵阳, 遵义]}
+  云南省: {code: '530000', label: 云南, markers: [云南, 昆明, 曲靖, 大理]}
+  西藏自治区: {code: '540000', label: 西藏, markers: [西藏, 拉萨]}
+  陕西省: {code: '610000', label: 陕西, markers: [陕西, 西安, 咸阳, 榆林]}
+  甘肃省: {code: '620000', label: 甘肃, markers: [甘肃, 兰州, 天水]}
+  青海省: {code: '630000', label: 青海, markers: [青海, 西宁]}
+  宁夏回族自治区: {code: '640000', label: 宁夏, markers: [宁夏, 银川]}
+  新疆维吾尔自治区: {code: '650000', label: 新疆, markers: [新疆, 乌鲁木齐, 喀什, 伊犁]}
+

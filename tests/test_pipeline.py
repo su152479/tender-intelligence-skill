@@ -5,18 +5,19 @@ from opportunity_radar.db import Database
 from opportunity_radar.models import Project
 from opportunity_radar.collectors.cccc import CCCCCollector
 from opportunity_radar.collectors.luban import CRECGLubanCollector
-from opportunity_radar.collectors.regions import infer_region, is_jing_jin_ji
+from opportunity_radar.collectors.regions import infer_region, is_target_region
 from opportunity_radar.collectors.yzw import CSCECYunZhuCollector
 from opportunity_radar.collectors.beijing_ggzy import BeijingGGZYCollector
 from opportunity_radar.collectors.ccgp import CCGPCollector
 from opportunity_radar.collectors.construction import is_construction_tender
+from opportunity_radar.config import profile_keywords
 
 CFG = {"products": [{"name":"管片","keywords":["盾构","管片"],"project_types":["轨道交通"],"score":35}], "rules":{"title_keyword_bonus":20,"content_keyword_bonus":10,"max_score":100}}
 
 def test_analysis_json_contract():
     result = OpportunityAnalyzer(CFG).analyze(Project(name="盾构管片采购", raw_text="地铁盾构区间管片"))
     assert result["项目类型"] == "轨道交通"
-    assert result["潜在预制产品"] == ["管片"]
+    assert result["潜在产品或服务"] == ["管片"]
     assert 0 <= result["机会评分0-100"] <= 100
     assert result["证据等级"] == "直接产品证据"
 
@@ -40,10 +41,11 @@ def test_cccc_region_filter():
     assert not collector._region_allowed("江苏省")
     assert not collector._region_allowed("")
 
-def test_jing_jin_ji_text_filter():
+def test_configurable_region_filter():
     assert infer_region("雄安新区盾构管片") == "河北省"
-    assert is_jing_jin_ji("天津地铁PC构件")
-    assert not is_jing_jin_ji("上海地铁管片")
+    assert infer_region("上海市钢结构工程") == "上海市"
+    assert is_target_region("上海地铁钢结构", ["上海市", "江苏省"])
+    assert not is_target_region("广东深圳市政工程", ["上海市", "江苏省"])
 
 def test_luban_homepage_filter():
     html = '''<div class="luban-notice-row"><a title="雄安新区管片采购" href="https://eproport.crecgec.com/assets/tmp/redirect.html?x=1">项目</a><div class="date">2099-01-01</div></div>'''
@@ -53,13 +55,18 @@ def test_luban_homepage_filter():
     assert rows[0].region == "河北省"
 
 def test_yzw_api_region_filter():
-    collector = CSCECYunZhuCollector({"id": "cscec_yzw", "name": "中建云筑网"})
+    collector = CSCECYunZhuCollector({"id": "cscec_yzw", "name": "中建云筑网", "regions": ["河北省"]})
     body = {"code": 200, "data": {"records": [
         {"name": "雄安管片采购", "area": "河北省雄安新区", "tenderCode": "T-1", "source": 3, "tenantId": "cscec", "publishDate": "2099-01-01 10:00:00"},
         {"name": "武汉管片采购", "area": "湖北省武汉市", "tenderCode": "T-2"},
     ]}}
     rows = collector._projects_from_api(body, "管片")
     assert [row.project_no for row in rows] == ["T-1"]
+
+def test_profile_search_keywords_are_bounded(monkeypatch):
+    monkeypatch.setenv("RADAR_PROFILE_KEYWORDS_PER_CATEGORY", "2")
+    profile = {"products": [{"name": "钢结构", "direct_keywords": ["钢梁", "钢桁架", "网架"]}]}
+    assert profile_keywords(profile) == ["钢结构", "钢梁"]
 
 def test_beijing_ggzy_parsers():
     collector = BeijingGGZYCollector({"name": "北京公共资源", "url": "https://ggzyfw.beijing.gov.cn/"})
@@ -72,7 +79,7 @@ def test_beijing_ggzy_parsers():
     assert "雨水管线" in project.construction_content
 
 def test_ccgp_parsers_and_jjj_mapping():
-    collector = CCGPCollector({"name": "中国政府采购网", "region_labels": ["北京", "天津", "河北"]})
+    collector = CCGPCollector({"name": "中国政府采购网", "regions": ["河北省"]})
     html = '''<ul class="c_list_bid"><li><a href="./202608/t1.htm" title="污水管网工程施工公开招标公告">公告</a>发布时间：<em>2026-08-14 10:00</em> 地域：<em>河北</em> 采购人：<em>某水务局</em></li></ul>'''
     rows = collector.parse_list(html)
     assert rows[0][2:4] == ("河北", "某水务局")
