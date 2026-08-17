@@ -1,0 +1,84 @@
+sources:
+  - id: cccc
+    name: 中交集团供应链管理信息系统
+    url: https://sp.iccec.cn/
+    public_url: https://zjzcw.iccec.cn/
+    regions: [北京市, 天津市, 河北省]
+    region_codes: ['110000', '120000', '130000']
+    login: manual_playwright
+    collection: playwright_public
+    enabled: true
+    keywords: [箱梁, 管片, PC构件, 风塔, 圆形顶管, 矩形顶管, 水工预制件]
+  - id: cscec_yzw
+    name: 中建云筑网
+    url: https://www.yzw.cn/
+    search_url: https://xy.yzw.cn/business-opportunity/searcher
+    login_url: https://xy.yzw.cn/business-opportunity/searcher?tab=bid-purchase
+    login_success_url_contains: xy.yzw.cn/
+    regions: [北京市, 天津市, 河北省]
+    region_codes: ['110000', '120000', '130000']
+    login: manual_playwright
+    collection: playwright
+    enabled: true
+    keywords: [箱梁, 管片, PC构件, 风塔, 圆形顶管, 矩形顶管, 水工预制件]
+  - id: crecg_luban
+    name: 中铁鲁班网
+    url: https://www.crecgec.com/
+    public_url: https://www.crecgec.com/
+    regions: [北京市, 天津市, 河北省]
+    region_codes: ['110000', '120000', '130000']
+    login: none_public
+    collection: requests_html
+    enabled: true
+    keywords: [箱梁, 管片, PC构件, 风塔, 圆形顶管, 矩形顶管, 水工预制件]
+  - id: crcc_ec
+    name: 铁建云采
+    url: https://www.crccep.com/
+    login: manual_playwright
+    collection: playwright
+    enabled: true
+    keywords: [箱梁, 管片, PC构件, 顶管]
+  - id: powerchina
+    name: 中电建物资采购平台
+    url: https://ec.powerchina.cn/
+    login: manual_playwright
+    collection: playwright
+    enabled: true
+    keywords: [风塔, 水工预制件, 预制构件, 管片]
+  - id: beijing_ggzy
+    name: 北京市公共资源交易服务平台
+    url: https://ggzyfw.beijing.gov.cn/
+    list_url: https://ggzyfw.beijing.gov.cn/jyxxggjtbyqs/
+    regions: [北京市]
+    login: none_public
+    collection: requests_html_system_tls_fallback
+    enabled: true
+    keywords: [施工, 工程总承包, EPC]
+  - id: ccgp
+    name: 中国政府采购网
+    url: https://www.ccgp.gov.cn/
+    list_url: https://www.ccgp.gov.cn/cggg/dfgg/gkzb/
+    regions: [北京市, 天津市, 河北省]
+    region_labels: [北京, 天津, 河北]
+    login: none_public
+    collection: requests_html
+    enabled: true
+    keywords: [施工, 工程总承包, EPC]
+  - id: hebei_ggzy
+    name: 京冀公共资源交易跨区域信息专区（河北）
+    url: https://ggzyfw.beijing.gov.cn/xtgghbzbgg/
+    list_url: https://ggzyfw.beijing.gov.cn/xtgghbzbgg/
+    regions: [河北省]
+    login: none_public
+    collection: requests_html_system_tls_fallback
+    enabled: true
+    keywords: [施工, 工程总承包, EPC, 桥梁, 管网]
+  - id: tianjin_transport
+    name: 天津市交通运输委员会招标公告
+    url: https://jtys.tj.gov.cn/
+    list_url: https://jtys.tj.gov.cn/ZWGK6002/JTYSGCJS1685/ZBGG1389/
+    regions: [天津市]
+    login: none_public
+    collection: requests_html
+    enabled: true
+    keywords: [施工, 招标计划, 桥梁, 港口, 水工]
