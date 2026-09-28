@@ -756,17 +756,10 @@ class ProjectCandidateService:
         conflicts: list[str] = []
         relation = "SAME_PROJECT"
 
-        if not a.region_bucket or a.region_bucket != b.region_bucket:
+        region_components = self._region_components(a, b)
+        if region_components is None:
             return None
-        region_qualities = {a.region_confidence, b.region_confidence}
-        if region_qualities <= {"HIGH"}:
-            components.append(self._component("region_match", 10, f"高可信地区同属{a.region_bucket}"))
-            if _identity(a.region) == _identity(b.region):
-                components.append(self._component("region_exact", 5, "高可信地区文本完全一致"))
-        elif "LOW" not in region_qualities and "UNKNOWN" not in region_qualities:
-            components.append(self._component("region_match_gated", 5, f"中等可信地区同属{a.region_bucket}"))
-        else:
-            components.append(self._component("region_low_confidence", 0, "至少一条地区来自默认值或未限定文本推断，不加分"))
+        components.extend(region_components)
 
         for label, values_a, values_b in (
             ("期次", a.phases, b.phases), ("年度", a.years, b.years),
@@ -791,33 +784,11 @@ class ProjectCandidateService:
         else:
             components.append(self._component("owner_unusable", 0, "至少一条公告建设单位缺失或污染，不加分"))
 
-        ratio = SequenceMatcher(None, a.core_key, b.core_key).ratio()
-        grams_a, grams_b = _ngrams(a.core, 3), _ngrams(b.core, 3)
-        union = grams_a | grams_b
-        jaccard = len(grams_a & grams_b) / len(union) if union else 0.0
-        if a.core_key == b.core_key:
-            components.append(self._component("name_core_match", 45, "核心名称完全一致"))
-            common_name = a.core
-        elif a.parent_key == b.parent_key and a.parent_key:
-            relation = "SAME_PARENT_PROJECT"
-            components.append(self._component("name_parent_match", 42, "去除标段后工程主体一致"))
-            common_name = a.parent_core
-        elif (
-            min(len(a.core_key), len(b.core_key)) >= 8
-            and (a.core_key.startswith(b.core_key) or b.core_key.startswith(a.core_key))
-        ):
-            relation = "SAME_PARENT_PROJECT"
-            components.append(self._component("name_parent_containment", 38, "一个名称是另一子工程名称的主体前缀"))
-            common_name = min((a.core, b.core), key=lambda value: (len(value), value))
-        elif ratio >= 0.88 and jaccard >= 0.65:
-            components.append(self._component("name_core_similarity", 35, f"名称结构高度相似 ratio={ratio:.2f}, overlap={jaccard:.2f}"))
-            common_name = min((a.core, b.core), key=lambda value: (len(value), value))
-        elif ratio >= 0.80 and jaccard >= 0.55:
-            relation = "UNCERTAIN"
-            components.append(self._component("name_core_similarity", 30, f"名称结构相似 ratio={ratio:.2f}, overlap={jaccard:.2f}"))
-            common_name = min((a.core, b.core), key=lambda value: (len(value), value))
-        else:
+        name_evidence = self._name_evidence(a, b)
+        if name_evidence is None:
             return None
+        relation, common_name, ratio, jaccard, name_component = name_evidence
+        components.append(name_component)
 
         if a.subproject_scope and b.subproject_scope and _identity(a.subproject_scope) != _identity(b.subproject_scope):
             relation = "SAME_PARENT_PROJECT"
@@ -866,14 +837,11 @@ class ProjectCandidateService:
         else:
             components.append(self._component("identifier_hint", 0, "无共同正式项目编号"))
 
-        date_a, date_b = _parse_date(a.publish_date), _parse_date(b.publish_date)
-        if date_a and date_b:
-            days = abs((date_a - date_b).days)
-            if days <= 730:
-                components.append(self._component("temporal_consistency", 5, f"发布日期相差{days}天"))
-            elif days > 1460:
-                components.append(self._component("temporal_conflict", -10, f"发布日期相差{days}天"))
-                conflicts.append("发布时间跨度超过四年")
+        temporal_component, temporal_conflict = self._temporal_evidence(a, b)
+        if temporal_component:
+            components.append(temporal_component)
+        if temporal_conflict:
+            conflicts.append(temporal_conflict)
 
         if a.source_site != b.source_site:
             components.append(self._component("cross_source", 5, "来自不同来源，可用于交叉核验"))
@@ -911,6 +879,66 @@ class ProjectCandidateService:
                 "name_ratio": round(ratio, 4), "name_ngram_overlap": round(jaccard, 4),
             },
         }
+
+    def _region_components(self, a: NoticeFeature, b: NoticeFeature) -> list[dict] | None:
+        if not a.region_bucket or a.region_bucket != b.region_bucket:
+            return None
+        qualities = {a.region_confidence, b.region_confidence}
+        if qualities <= {"HIGH"}:
+            result = [self._component("region_match", 10, f"高可信地区同属{a.region_bucket}")]
+            if _identity(a.region) == _identity(b.region):
+                result.append(self._component("region_exact", 5, "高可信地区文本完全一致"))
+            return result
+        if "LOW" not in qualities and "UNKNOWN" not in qualities:
+            return [self._component("region_match_gated", 5, f"中等可信地区同属{a.region_bucket}")]
+        return [self._component("region_low_confidence", 0, "至少一条地区来自默认值或未限定文本推断，不加分")]
+
+    def _name_evidence(
+        self, a: NoticeFeature, b: NoticeFeature,
+    ) -> tuple[str, str, float, float, dict] | None:
+        ratio = SequenceMatcher(None, a.core_key, b.core_key).ratio()
+        grams_a, grams_b = _ngrams(a.core, 3), _ngrams(b.core, 3)
+        union = grams_a | grams_b
+        jaccard = len(grams_a & grams_b) / len(union) if union else 0.0
+        relation = "SAME_PROJECT"
+        common_name = min((a.core, b.core), key=lambda value: (len(value), value))
+        if a.core_key == b.core_key:
+            common_name = a.core
+            component = self._component("name_core_match", 45, "核心名称完全一致")
+        elif a.parent_key == b.parent_key and a.parent_key:
+            relation, common_name = "SAME_PARENT_PROJECT", a.parent_core
+            component = self._component("name_parent_match", 42, "去除标段后工程主体一致")
+        elif (
+            min(len(a.core_key), len(b.core_key)) >= 8
+            and (a.core_key.startswith(b.core_key) or b.core_key.startswith(a.core_key))
+        ):
+            relation = "SAME_PARENT_PROJECT"
+            component = self._component("name_parent_containment", 38, "一个名称是另一子工程名称的主体前缀")
+        elif ratio >= 0.88 and jaccard >= 0.65:
+            component = self._component(
+                "name_core_similarity", 35,
+                f"名称结构高度相似 ratio={ratio:.2f}, overlap={jaccard:.2f}",
+            )
+        elif ratio >= 0.80 and jaccard >= 0.55:
+            relation = "UNCERTAIN"
+            component = self._component(
+                "name_core_similarity", 30,
+                f"名称结构相似 ratio={ratio:.2f}, overlap={jaccard:.2f}",
+            )
+        else:
+            return None
+        return relation, common_name, ratio, jaccard, component
+
+    def _temporal_evidence(self, a: NoticeFeature, b: NoticeFeature) -> tuple[dict | None, str]:
+        date_a, date_b = _parse_date(a.publish_date), _parse_date(b.publish_date)
+        if not date_a or not date_b:
+            return None, ""
+        days = abs((date_a - date_b).days)
+        if days <= 730:
+            return self._component("temporal_consistency", 5, f"发布日期相差{days}天"), ""
+        if days > 1460:
+            return self._component("temporal_conflict", -10, f"发布日期相差{days}天"), "发布时间跨度超过四年"
+        return None, ""
 
     @staticmethod
     def _hard_conflicts(a: NoticeFeature, b: NoticeFeature, *, same_project: bool) -> list[str]:

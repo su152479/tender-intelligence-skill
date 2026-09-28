@@ -12,13 +12,15 @@ CLOSED_LIFECYCLE_MARKERS = ("中标候选人", "中标结果", "成交结果", "
 PRODUCT_WINDOW_ENDED_MARKERS = ("中标结果", "成交结果", "结果公告")
 PROJECT_ARCHIVE_MARKERS = ("竣工验收完成", "项目已完工", "工程已结束且不再实施", "项目终止且不再实施")
 WEAK_METHOD_KEYWORDS = {"非开挖"}
-WEAK_METHOD_KEYWORDS_BY_PRODUCT = {
+# Backward-compatible defaults for callers that construct a minimal in-memory
+# product config. The repository config is the authoritative source.
+LEGACY_WEAK_METHOD_KEYWORDS_BY_PRODUCT = {
     "箱梁": {"桥梁上部结构"},
     "PC构件": {"装配式建筑", "装配式混凝土", "预制装配"},
     "风塔": {"风机基础"},
     "圆形顶管": {"非开挖"},
 }
-IN_SCOPE_CONFIRMATION_PATTERNS = {
+LEGACY_IN_SCOPE_CONFIRMATION_PATTERNS = {
     "箱梁": re.compile(r"预制(?:混凝土)?箱梁|小箱梁|T梁|混凝土预制梁"),
     "风塔": re.compile(r"混塔|混凝土塔筒|混凝土高塔筒"),
 }
@@ -72,6 +74,9 @@ TRANSACTION_QUALIFIER = re.compile(
 class OpportunityAnalyzer:
     def __init__(self, products_config: dict):
         self.cfg = products_config
+        self.products_by_name = {
+            product["name"]: product for product in products_config.get("products", [])
+        }
         canonical = json.dumps(products_config, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
         versioned_rules = f"{canonical}|{PRODUCT_OPPORTUNITY_RULESET}"
         self.rules_version = f"products-{hashlib.sha256(versioned_rules.encode('utf-8')).hexdigest()[:12]}"
@@ -273,14 +278,13 @@ class OpportunityAnalyzer:
         raw["规则版本"] = self.rules_version
         return OpportunityAnalysis.model_validate(raw).validate_evidence_consistency()
 
-    @staticmethod
-    def _derive_product_demand_evidence(item: dict) -> tuple[str, str]:
+    def _derive_product_demand_evidence(self, item: dict) -> tuple[str, str]:
         if item.get("范围状态") == "OUT_OF_SCOPE" or item.get("需求意图") == "排除":
             return "NONE", "NEGATIVE_EVIDENCE"
         if item.get("证据关系") == "工程方向":
             return "WEAK", "ENGINEERING_DIRECTION"
         if item.get("等级") == "明确施工方法":
-            level = "MEDIUM" if OpportunityAnalyzer._has_strong_method_evidence(item) else "WEAK"
+            level = "MEDIUM" if self._has_strong_method_evidence(item) else "WEAK"
             return level, "CONSTRUCTION_METHOD"
         evidence_text = "\n".join(item.get("证据句", []))
         if SUPPORTING_PRODUCT_PATTERN.search(evidence_text):
@@ -341,11 +345,18 @@ class OpportunityAnalyzer:
         """Compatibility wrapper for callers and older tests."""
         return self._annotate_product_dimensions(dict(item))["产品机会状态"]
 
-    @staticmethod
-    def _has_strong_method_evidence(item: dict) -> bool:
+    def _has_strong_method_evidence(self, item: dict) -> bool:
         keywords = {str(value).strip() for value in item.get("关键词", [])}
-        weak = WEAK_METHOD_KEYWORDS | WEAK_METHOD_KEYWORDS_BY_PRODUCT.get(item.get("产品", ""), set())
+        weak = WEAK_METHOD_KEYWORDS | self._product_weak_methods(item.get("产品", ""))
         return bool(keywords - weak)
+
+    def _product_weak_methods(self, product_name: str) -> set[str]:
+        product = self.products_by_name.get(product_name, {})
+        configured = product.get("weak_method_keywords")
+        return (
+            set(configured) if configured is not None
+            else LEGACY_WEAK_METHOD_KEYWORDS_BY_PRODUCT.get(product_name, set())
+        )
 
     @staticmethod
     def _locations(project: Project, hits: list[str]) -> list[str]:
@@ -544,7 +555,11 @@ class OpportunityAnalyzer:
         """Let explicit material/structure exclusions beat a broader product alias."""
         if not negative:
             return False
-        confirmation = IN_SCOPE_CONFIRMATION_PATTERNS.get(product["name"])
+        configured = product.get("in_scope_confirmation_pattern")
+        if configured is not None:
+            confirmation = re.compile(configured)
+        else:
+            confirmation = LEGACY_IN_SCOPE_CONFIRMATION_PATTERNS.get(product["name"])
         if confirmation is None:
             return False
         return not any(confirmation.search(sentence) for _, sentence in positive_contexts)
@@ -665,7 +680,7 @@ class OpportunityAnalyzer:
                 if notice_has_business_action:
                     opportunity_score = min(opportunity_score, int(rules.get("unrelated_procurement_method_cap", 10)))
                 explanation = ["施工方法支持未来构件需求，但未证明本次采购目标构件"]
-                weak_methods = WEAK_METHOD_KEYWORDS | WEAK_METHOD_KEYWORDS_BY_PRODUCT.get(product["name"], set())
+                weak_methods = WEAK_METHOD_KEYWORDS | self._product_weak_methods(product["name"])
                 if not set(hits) - weak_methods:
                     explanation.append("仅出现泛化或非唯一施工背景，不能形成产品特定机会")
             elif direction_hits:

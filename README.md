@@ -103,7 +103,7 @@ radar export-obsidian --vault "C:\Users\你的用户名\Documents\工程机会�
 日报位于 `data/reports/`，数据库位于 `data/radar.sqlite3`。
 `radar reanalyze` 只预览历史重评数量；`--apply` 会先在 `data/backups/` 创建 SQLite 一致性备份，再用当前分析器和产品规则回填历史记录及逐产品评估。
 `radar export-obsidian` 使用 SQLite 只读连接生成本地 Markdown 知识库。自动区块可以重复更新，“我的跟进记录”不会被覆盖；完整原文、账号、Cookie、API Key、日志和 SQLite 文件不会进入 Vault。
-`radar project-lifecycle` 只从 Canonical Project Event 动态推导“当前已观察到的最先进阶段”，不会更新 `engineering_project.lifecycle_stage`，也不会修改产品机会、采购窗口或项目跟踪建议。结果中的 `coverage_scope` 用于约束结论范围：`PROJECT_WIDE` 表示工程级事实，`PARTIAL_LOTS` 表示多个已观察标段，`SINGLE_LOT` 表示单一标段，`UNKNOWN` 表示事实不足以声明完整覆盖。`stage_confidence` 是证据质量等级，不是概率。
+`radar project-lifecycle` 只从 Canonical Project Event 动态推导“当前已观察到的最先进阶段”，不会更新已弃用的兼容字段 `engineering_project.lifecycle_stage`，也不会修改产品机会、采购窗口或项目跟踪建议。结果中的 `coverage_scope` 用于约束结论范围：`PROJECT_WIDE` 表示工程级事实，`PARTIAL_LOTS` 表示多个已观察标段，`SINGLE_LOT` 表示单一标段，`UNKNOWN` 表示事实不足以声明完整覆盖。`stage_confidence` 是证据质量等级，不是概率。
 `radar enrich` 只访问公告页及其允许的官方域名附件，默认单文件不超过 100MB；遇到验证码、403、418 或 429 会停止，不做绕过。已成功解析且本地文件仍存在的附件会直接跳过。可用 `--extra-page` 补充同项目官方资料页，或用 `--attachment-url` 补充已确认的官方附件直链，再通过 `radar document-search` 检索附件正文和工程编号。文本极少的 PDF 会标记为 `needs_ocr`，本版不自动执行 OCR。
 `radar cleanup-documents` 默认删除解析完成超过 2 天的本地附件原文件，只把附件状态改为 `PURGED`；SQLite 中的正文、工程编号、文件哈希、来源 URL 和 FTS5 全文索引均继续保留。命令只允许删除 `data/documents/` 内的普通文件，并可先使用 `--dry-run` 预览。保留天数可通过 `.env` 的 `RADAR_DOCUMENT_RETENTION_DAYS` 调整。
 日报的“今日新发现”默认只展示项目线索分达到 30 分的首次发现公告，可通过 `.env` 的 `RADAR_REPORT_MIN_SCORE` 调整；历史公告内容更新单列，“再次观察”只显示数量。网站首页使用同一 observation 生成的公开安全快照，历史页仍展示全部累计公告。
@@ -163,7 +163,9 @@ radar evaluate
 radar run --mock
 ```
 
-`radar evaluate` 默认读取 `tests/fixtures/opportunity_cases.json`，输出结构通过率、产品精确率、召回率和完全匹配率。默认精确率或召回率低于 85% 时命令返回失败，可用于每日任务或后续 CI 的发布门禁。发现漏报时，先把真实公告脱敏后加入该文件，再调整 `products.yaml` 或分析逻辑，避免修好一个案例却破坏其他类别。
+`radar evaluate` 默认读取 `tests/fixtures/opportunity_cases.json`，分别输出候选产品召回指标（`candidate_*`）、产品需求证据完全匹配率、产品机会状态完全匹配率以及 DIRECT 精确率/召回率。只有显式提供相应标签的样本才进入需求证据或机会状态分母。这些都是规则回归指标，不是概率。旧字段 `exact_product_match_rate`、`product_precision`、`product_recall` 为兼容保留，分别是 `candidate_exact_match_rate`、`candidate_precision`、`candidate_recall` 的弃用别名；CLI 的 `--min-precision` / `--min-recall` 仍对候选产品指标执行门禁。发现漏报时，先把真实公告脱敏后加入该文件，再调整 `products.yaml` 或分析逻辑，避免修好一个案例却破坏其他类别。
+
+正式产品配置以 `config/products.yaml` 为准。产品专属的弱施工方法词和在范围确认正则分别使用 `weak_method_keywords`、`in_scope_confirmation_pattern`；Python 中的旧值只用于兼容外部调用方传入的不完整内存配置。全局业务动作和通用上下游配套识别仍属于分析器语法规则，暂不迁入产品配置。
 
 ## 证据评分与机会状态 v6
 

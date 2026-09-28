@@ -2,6 +2,8 @@ products:
   - name: 箱梁
     direct_keywords: [箱梁, 预制梁, T梁, 小箱梁]
     method_keywords: [预制梁场, 架梁, 桥梁上部结构]
+    weak_method_keywords: [桥梁上部结构]
+    in_scope_confirmation_pattern: '预制(?:混凝土)?箱梁|小箱梁|T梁|混凝土预制梁'
     direction_keywords: [简支梁, 预制梁桥, 梁板工程]
     exclusion_keywords: [钢箱梁, 现浇箱梁, 现浇连续梁, 钢混组合梁]
     project_types: [公路, 铁路, 市政桥梁]
@@ -16,6 +18,7 @@ products:
   - name: PC构件
     direct_keywords: [PC构件, 预制构件, 小型预制构件, 预制混凝土构件, 预制墙板, 轻质墙板, 装配式墙板, 叠合板, 预制楼梯, 预制阳台]
     method_keywords: [装配式建筑, 装配式混凝土, 预制装配]
+    weak_method_keywords: [装配式建筑, 装配式混凝土, 预制装配]
     direction_keywords: [装配率, 预制率, 工业化建造, 装配式结构]
     exclusion_keywords: [现浇混凝土结构, 传统现浇结构]
     project_types: [房建, 装配式建筑]
@@ -23,6 +26,8 @@ products:
   - name: 风塔
     direct_keywords: [风塔, 混塔, 风电塔筒, 混凝土塔筒]
     method_keywords: [塔筒安装, 风机基础]
+    weak_method_keywords: [风机基础]
+    in_scope_confirmation_pattern: '混塔|混凝土塔筒|混凝土高塔筒'
     direction_keywords: [混塔风电场, 混凝土高塔筒]
     exclusion_keywords: [钢制塔筒, 钢塔筒, 钢塔架]
     project_types: [风电]
@@ -30,6 +35,7 @@ products:
   - name: 圆形顶管
     direct_keywords: [圆形顶管, 混凝土顶管, 顶管管节]
     method_keywords: [顶管施工, 非开挖, 泥水平衡顶管]
+    weak_method_keywords: [非开挖]
     direction_keywords: [顶管工作井, 顶管接收井, 顶进井, 非开挖管线]
     exclusion_keywords: [开槽施工, 明挖施工, 钢管顶管, 球墨铸铁管顶管]
     project_types: [市政管网, 水务]

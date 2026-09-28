@@ -83,6 +83,8 @@ ENGINEERING_PROJECT_SCHEMA = """CREATE TABLE IF NOT EXISTS engineering_project (
  region TEXT DEFAULT '',
  owner TEXT DEFAULT '',
  project_type TEXT DEFAULT '',
+ -- Deprecated compatibility field: read-only lifecycle aggregation does not
+ -- write this column. Keep it until an explicit schema migration removes it.
  lifecycle_stage TEXT DEFAULT '',
  first_seen_at TEXT,
  last_seen_at TEXT,

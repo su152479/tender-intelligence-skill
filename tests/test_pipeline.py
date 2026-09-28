@@ -752,7 +752,28 @@ def test_evaluation_fixture_meets_baseline():
     assert metrics["schema_pass_rate"] == 1
     assert metrics["product_precision"] >= 0.85
     assert metrics["product_recall"] >= 0.85
+    assert metrics["candidate_precision"] == metrics["product_precision"]
+    assert metrics["candidate_recall"] == metrics["product_recall"]
+    assert metrics["demand_exact_match_rate"] == 1
+    assert metrics["opportunity_status_exact_match_rate"] == 1
+    assert metrics["direct_support"] > 0
+    assert metrics["direct_precision"] == metrics["direct_recall"] == 1
     assert metrics["semantic_pass_rate"] == 1
+
+
+def test_product_specific_weak_method_rule_comes_from_config():
+    cfg = {
+        "products": [{
+            "name": "箱梁", "direct_keywords": ["箱梁"],
+            "method_keywords": ["架梁"], "weak_method_keywords": ["架梁"],
+            "project_types": ["桥梁"],
+        }],
+        "rules": {"product_candidate_min_score": 50, "construction_method_score": 75},
+    }
+    result = OpportunityAnalyzer(cfg).analyze(Project(name="桥梁架梁施工公告"))
+    evidence = result["命中证据"][0]
+    assert evidence["产品"] == "箱梁"
+    assert evidence["产品需求证据等级"] == "WEAK"
 
 def test_procurement_object_controls_current_opportunity_score():
     analyzer = OpportunityAnalyzer(load_yaml("products.yaml"))
