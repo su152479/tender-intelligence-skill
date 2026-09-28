@@ -42,7 +42,7 @@ sources:
     url: https://www.crccep.com/
     login: manual_playwright
     collection: playwright
-    enabled: true
+    enabled: false
     keywords: [箱梁, 管片, PC构件, 顶管]
     search_keywords: [箱梁, 预制梁, 桥梁, 管片, 盾构, 预制构件, 装配式, 顶管, 管网, 泵站]
   - id: powerchina
@@ -50,7 +50,7 @@ sources:
     url: https://ec.powerchina.cn/
     login: manual_playwright
     collection: playwright
-    enabled: true
+    enabled: false
     keywords: [风塔, 水工预制件, 预制构件, 管片]
     search_keywords: [风塔, 塔筒, 水工, 预制构件, 桥梁, 管片, 盾构, 顶管, 泵站, 码头]
   - id: beijing_ggzy

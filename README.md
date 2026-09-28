@@ -42,6 +42,7 @@ python -m venv .venv
 pip install -e ".[dev]"
 Copy-Item .env.example .env
 radar init
+radar --version
 radar run --mock
 radar run --source cccc
 radar login cscec_yzw
@@ -130,7 +131,7 @@ playwright install chromium
 radar login cccc
 ```
 
-浏览器打开后人工输入账号、密码并处理验证码，完成后回终端按 Enter。状态保存在 `data/auth/<source-id>.json`，已被 `.gitignore` 排除。不要分享该文件。可用 ID：`cccc`、`cscec_yzw`、`crecg_luban`、`crcc_ec`、`powerchina`。
+浏览器打开后人工输入账号、密码并处理验证码，完成后回终端按 Enter。状态保存在 `data/auth/<source-id>.json`，已被 `.gitignore` 排除。不要分享该文件。当前配置为人工登录的 ID：`cccc`、`cscec_yzw`；鲁班网及政府来源使用公开入口，无需登录。铁建云采和中电建仍保留为规划来源，但在真实 Collector 完成前保持禁用。
 
 云筑 collector 会通过 `browser.new_context(**login_manager.context_kwargs(source_id))` 复用状态；若页面跳回登录页，会停止该来源并提醒重新人工登录，不尝试破解验证码。中交和鲁班公开公告无需登录。
 
@@ -154,7 +155,7 @@ tests/                  核心流程测试
 
 ## 下一阶段建议
 
-下一步增加 PDF 正文提取、原始响应内容哈希缓存和跨站项目编号去重。继续优先公开 API 或静态 HTML，动态页面才使用 Playwright；只有确认属于页面结构变化时，才考虑接入可选的语义定位 Agent，WAF、验证码和限流不进入 Agent 兜底。
+下一步优先加固 Project Event 的业务语义：区分施工、EPC、设计、监理和咨询事件，并明确哪些 Canonical Event 可以作为生命周期主事件。附件解析、全文索引和跨公告工程身份事实已经存在；继续优先完善证据语义与人工审核，不扩张未实现 Collector。动态页面仍只在必要时使用 Playwright，WAF、验证码和限流不进入 Agent 兜底。
 
 ## 测试
 
@@ -240,7 +241,7 @@ SQLite副本中重算受影响Candidate并报告正式关系冲突，生产库�
 正式工程/交易项目编号完全一致，或规范化名称、地区和有效业主同时一致。中交方案号、
 云筑 tenderCode、一般采购/招标编号不会用于自动合并。标段、期次、站点、区间和起止位置
 不会从名称中删除；不确定时保持公告未关联。人工确认写入 `HUMAN_CONFIRMED`，自动任务
-不会覆盖人工关系。本阶段不推断项目生命周期，也不将工程实体同步到网站。
+不会覆盖人工关系。工程实体构建本身不写入项目生命周期，也不将工程实体同步到网站；只读 Lifecycle Aggregator 会基于 Canonical Event 动态推导 observed stage。
 
 `project_link_candidate` 是独立的人工审核队列，不是正式工程关系。候选生成使用地区
 blocking、核心名称、建设单位、标段、期次、站点、起止范围、年度和发布时间等可解释

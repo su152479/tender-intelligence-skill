@@ -12,6 +12,7 @@ SAMPLES = {
  "ccgp": ("河北污水管网工程施工招标公告", "污水管线及顶管施工", "河北省"),
  "hebei_ggzy": ("雄安新区综合管网工程施工招标公告", "雨污水管网及泵站工程", "河北省"),
  "tianjin_transport": ("天津港区桥梁工程施工招标公告", "桥梁及水工附属工程", "天津市"),
+ "jjj_portal": ("京津冀协同道路工程施工招标公告", "道路桥梁及地下管网工程", "河北省"),
 }
 class MockCollector(BaseCollector):
     def collect(self):

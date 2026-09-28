@@ -24,3 +24,8 @@ COLLECTORS = {
     "tianjin_transport": TianjinTransportCollector,
     "jjj_portal": JingJinJiPortalCollector,
 }
+
+
+def collector_is_implemented(source_id: str) -> bool:
+    collector = COLLECTORS.get(source_id)
+    return collector is not None and not issubclass(collector, NotImplementedCollector)

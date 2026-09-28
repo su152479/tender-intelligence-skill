@@ -3,7 +3,7 @@ from datetime import datetime
 from pathlib import Path
 from .ai import ANALYZER_VERSION, OpportunityAnalyzer
 from .auth import LoginManager
-from .collectors import MockCollector, COLLECTORS
+from .collectors import MockCollector, COLLECTORS, collector_is_implemented
 from .config import DATA_DIR, PROJECT_ROOT, ensure_dirs, load_yaml
 from .db import Database
 from .logging_config import setup_logging
@@ -21,10 +21,26 @@ from .identity_reviews import IdentityReviewService
 from .project_events import ProjectEventService
 from .project_integrity import EngineeringProjectRelationCandidateService, direct_unlinked_notices
 from .project_lifecycle import ProjectLifecycleAggregator
+from . import __version__
 
 log = logging.getLogger(__name__)
 
-def sources(): return load_yaml("sources.yaml")["sources"]
+def sources():
+    configured = load_yaml("sources.yaml")["sources"]
+    ids = [source["id"] for source in configured]
+    if len(ids) != len(set(ids)):
+        raise RuntimeError("sources.yaml 包含重复 source id")
+    invalid = [
+        source["id"] for source in configured
+        if source.get("enabled", True) and not collector_is_implemented(source["id"])
+    ]
+    if invalid:
+        raise RuntimeError(f"启用的数据源尚无真实 Collector：{', '.join(invalid)}")
+    return configured
+
+
+def enabled_sources():
+    return [source for source in sources() if source.get("enabled", True)]
 def database(): return Database(DATA_DIR / "radar.sqlite3")
 
 def generate_current_report(db: Database):
@@ -38,6 +54,10 @@ def cmd_init(_):
 def cmd_login(args):
     source = next((s for s in sources() if s["id"] == args.source_id), None)
     if not source: raise SystemExit(f"未知数据源：{args.source_id}")
+    if not source.get("enabled", True):
+        raise SystemExit(f"数据源尚未启用：{args.source_id}")
+    if not str(source.get("login", "none")).startswith("manual"):
+        raise SystemExit(f"数据源无需人工登录：{args.source_id}")
     print(f"登录状态已保存：{LoginManager(DATA_DIR / 'auth').manual_login(source)}")
 def cmd_run(args):
     db = database(); db.init(); analyzer = OpportunityAnalyzer(load_yaml("products.yaml")); count = 0
@@ -458,10 +478,11 @@ def main():
             stream.reconfigure(encoding="utf-8", errors="replace")
     setup_logging(os.getenv("RADAR_LOG_LEVEL", "INFO"))
     parser = argparse.ArgumentParser(prog="radar", description="工程项目机会雷达 MVP")
+    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     sub = parser.add_subparsers(required=True)
     p = sub.add_parser("init"); p.set_defaults(func=cmd_init)
     p = sub.add_parser("login"); p.add_argument("source_id"); p.set_defaults(func=cmd_login)
-    p = sub.add_parser("run"); p.add_argument("--mock", action="store_true", help="使用五个平台的模拟公告"); p.add_argument("--source", action="append", choices=[s["id"] for s in sources()], help="仅运行指定数据源，可重复使用"); p.set_defaults(func=cmd_run)
+    p = sub.add_parser("run"); p.add_argument("--mock", action="store_true", help="使用已启用来源的模拟公告"); p.add_argument("--source", action="append", choices=[s["id"] for s in enabled_sources()], help="仅运行指定且已启用的数据源，可重复使用"); p.set_defaults(func=cmd_run)
     p = sub.add_parser("report"); p.set_defaults(func=cmd_report)
     p = sub.add_parser("status"); p.set_defaults(func=cmd_status)
     p = sub.add_parser("followups", help="查看工程需要但等待后续专项采购的线索")

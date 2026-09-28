@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "engineering-opportunity-radar"
-version = "0.1.0"
+dynamic = ["version"]
 description = "Personal MVP for discovering precast engineering opportunities"
 requires-python = ">=3.10"
 dependencies = ["PyYAML>=6.0", "requests>=2.31", "beautifulsoup4>=4.12", "playwright>=1.45", "python-dotenv>=1.0", "pydantic>=2.7"]
@@ -19,6 +19,9 @@ radar = "opportunity_radar.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.dynamic]
+version = {attr = "opportunity_radar.__version__"}
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
