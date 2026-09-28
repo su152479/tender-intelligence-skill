@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 from .models import Project
 from .source_health import assess_source_health
 from .business_time import business_day_bounds, business_now_naive, coerce_business_date
+from .schema_migrations import apply_schema_migrations, validate_schema_migrations
 
 PROJECT_SCHEMA = """CREATE TABLE IF NOT EXISTS project (
  id INTEGER PRIMARY KEY AUTOINCREMENT, project_name TEXT NOT NULL, project_no TEXT,
@@ -301,6 +302,10 @@ class Database:
         return con
     def init(self):
         with self.connect() as con:
+            # Validate an existing ledger before any legacy additive bootstrap can
+            # mutate the database. Unversioned databases are baselined only after
+            # the existing compatibility DDL succeeds.
+            validate_schema_migrations(con)
             con.execute(PROJECT_SCHEMA)
             con.execute(SOURCE_RUN_SCHEMA)
             con.execute(NOTICE_OBSERVATION_SCHEMA)
@@ -358,6 +363,7 @@ class Database:
             con.execute(
                 "CREATE INDEX IF NOT EXISTS idx_project_event_notice ON project_event(notice_id,is_active)"
             )
+            apply_schema_migrations(con)
 
     def backup_to(self, destination: Path) -> Path:
         destination.parent.mkdir(parents=True, exist_ok=True)
