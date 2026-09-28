@@ -1,38 +1,50 @@
-# Local configuration and secrets
+# Secrets and local configuration
 .env
 .env.*
 !.env.example
+*.key
+*.pem
+*cookie*
+*cookies*
+*storage_state*
 
-# Authentication state, collected data, databases and reports
-data/
-reports/
-*.sqlite
-*.sqlite3
-*.db
-*storage_state*.json
-*cookies*.json
-*session*.json
-
-# Private website and deployment material
-site/
-.openai/
-.wrangler/
-
-# Python environments and generated files
+# Python environments, caches, and build output
 .venv/
 venv/
 __pycache__/
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
 *.py[cod]
 *.egg-info/
 build/
 dist/
 
-# Logs, editor state and temporary files
+# Runtime databases, logs, reports, downloads, and diagnostics
+data/
+reports/
+*.sqlite
+*.sqlite3
+*.sqlite3-*
+*.db
+*.db-*
 *.log
-.idea/
-.vscode/
-.DS_Store
-Thumbs.db
-work/
+*.part
+downloads/
+attachments/
+playwright/.auth/
+playwright-report/
+test-results/
 
+# Browser profiles and saved sessions
+browser/
+browser-data/
+user-data-dir/
+*-profile/
+
+# Generated deployment bundles
+*.tar.gz
+site-package-*/
+
+# The website is maintained as its own Git repository.
+site/

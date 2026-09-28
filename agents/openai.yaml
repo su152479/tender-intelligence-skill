@@ -1,0 +1,7 @@
+interface:
+  display_name: "Engineering Opportunity Radar"
+  short_description: "Audit and operate an engineering tender intelligence radar"
+  default_prompt: "Use $tender-intelligence-skill to inspect the radar, run the appropriate safe workflow, and report evidence-backed engineering opportunities."
+
+policy:
+  allow_implicit_invocation: true

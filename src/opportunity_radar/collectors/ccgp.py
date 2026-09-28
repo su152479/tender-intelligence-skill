@@ -9,7 +9,6 @@ from bs4 import BeautifulSoup
 from .base import BaseCollector
 from .construction import evidence_excerpt, has_opportunity_direction, is_construction_tender
 from .http import PublicPageClient
-from .regions import infer_region, target_region_labels
 from ..models import Project
 
 log = logging.getLogger(__name__)
@@ -23,30 +22,38 @@ class CCGPCollector(BaseCollector):
         self.list_url = source.get("list_url", "https://www.ccgp.gov.cn/cggg/dfgg/gkzb/")
         self.lookback_days = int(os.getenv("RADAR_LOOKBACK_DAYS", "30"))
         self.max_pages = int(os.getenv("RADAR_CCGP_MAX_PAGES", "10"))
-        self.client = PublicPageClient(source["name"])
+        self.client = PublicPageClient(source["name"], source.get("id"))
 
     def collect(self) -> list[Project]:
         entries: dict[str, tuple[str, str, str, str]] = {}
-        allowed_labels = set(target_region_labels(self.source.get("regions")))
         stop = False
         for page in range(1, self.max_pages + 1):
             url = urljoin(self.list_url, "index.htm" if page == 1 else f"index_{page}.htm")
-            html = self.client.get_text(url)
-            for title, published, region, owner, detail_url in self.parse_list(html):
+            html = self.client.get_list_text(url)
+            rows = self.parse_list(html)
+            self.add_funnel(request_success_count=1, raw_list_count=len(rows))
+            for title, published, region, owner, detail_url in rows:
                 if not self._is_recent(published):
                     stop = True
                     continue
-                if region in allowed_labels and is_construction_tender(title):
+                self.add_funnel(recent_count=1)
+                if region in self.source.get("region_labels", []) and is_construction_tender(title):
                     entries[detail_url] = (title, published, region, owner)
             if stop:
                 break
 
         projects = []
         for url, (title, published, region, owner) in entries.items():
-            html = self.client.get_text(url)
+            html = self.client.get_detail_text(url)
             project = self.parse_detail(html, url, title, published, region, owner)
+            if project:
+                self.add_funnel(detail_success_count=1)
             if project and has_opportunity_direction(f"{project.name}\n{project.raw_text}"):
                 projects.append(project)
+        self.set_funnel(
+            construction_count=len(entries), region_recent_count=len(entries),
+            final_opportunity_count=len(projects),
+        )
         log.info("中国政府采购网采集完成 candidates=%s opportunities=%s", len(entries), len(projects))
         return projects
 
@@ -73,7 +80,7 @@ class CCGPCollector(BaseCollector):
         project_no = self._match(r"项目编号[：:]\s*([^\s，,。]+)", raw_text)
         return Project(
             name=title, project_no=project_no, publish_date=published,
-            region=infer_region(region) or region,
+            region={"北京": "北京市", "天津": "天津市", "河北": "河北省"}.get(region, region),
             owner=owner, tenderer=owner, stage="政府采购公开招标公告",
             construction_content=evidence_excerpt(raw_text), source_site=self.source["name"],
             url=url, raw_text=raw_text,

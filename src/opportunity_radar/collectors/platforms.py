@@ -6,6 +6,7 @@ from .beijing_ggzy import BeijingGGZYCollector
 from .ccgp import CCGPCollector
 from .hebei_ggzy import HebeiGGZYCollector
 from .tianjin_transport import TianjinTransportCollector
+from .jjj_portal import JingJinJiPortalCollector
 
 class NotImplementedCollector(BaseCollector):
     def collect(self):
@@ -21,4 +22,5 @@ COLLECTORS = {
     "ccgp": CCGPCollector,
     "hebei_ggzy": HebeiGGZYCollector,
     "tianjin_transport": TianjinTransportCollector,
+    "jjj_portal": JingJinJiPortalCollector,
 }

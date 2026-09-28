@@ -9,7 +9,7 @@ from urllib.parse import urljoin
 from bs4 import BeautifulSoup
 
 from .base import BaseCollector
-from .construction import evidence_excerpt, has_opportunity_direction
+from .construction import evidence_excerpt, has_opportunity_direction, is_construction_tender
 from .http import PublicPageClient
 from ..models import Project
 
@@ -25,20 +25,23 @@ class TianjinTransportCollector(BaseCollector):
         )
         self.lookback_days = int(os.getenv("RADAR_LOOKBACK_DAYS", "30"))
         self.max_pages = int(os.getenv("RADAR_TIANJIN_TRANSPORT_MAX_PAGES", "3"))
-        self.client = PublicPageClient(source["name"])
+        self.client = PublicPageClient(source["name"], source.get("id"))
 
     def collect(self) -> list[Project]:
         entries: dict[str, tuple[str, str]] = {}
         stop = False
         for page in range(self.max_pages):
             url = self.list_url if page == 0 else urljoin(self.list_url, f"index_{page}.html")
-            html = self.client.get_text(url, allow_windows_curl_fallback=True)
-            for title, published, detail_url in self.parse_list(html):
+            html = self.client.get_list_text(url, allow_windows_curl_fallback=True)
+            rows = self.parse_list(html)
+            self.add_funnel(request_success_count=1, raw_list_count=len(rows))
+            for title, published, detail_url in rows:
                 if not self._is_recent(published):
                     stop = True
                     continue
+                self.add_funnel(recent_count=1)
                 excluded = ("机电", "智慧收费站", "智慧服务区", "路面养护")
-                if ("施工" in title or "招标计划" in title) and not any(word in title for word in excluded):
+                if is_construction_tender(title) and not any(word in title for word in excluded):
                     entries[detail_url] = (title, published)
             if stop:
                 break
@@ -46,10 +49,16 @@ class TianjinTransportCollector(BaseCollector):
         projects = []
         for url, (title, published) in entries.items():
             project = self.parse_detail(
-                self.client.get_text(url, allow_windows_curl_fallback=True), url, title, published
+                self.client.get_detail_text(url, allow_windows_curl_fallback=True), url, title, published
             )
+            if project:
+                self.add_funnel(detail_success_count=1)
             if project and has_opportunity_direction(f"{project.name}\n{project.raw_text}"):
                 projects.append(project)
+        self.set_funnel(
+            construction_count=len(entries), region_recent_count=len(entries),
+            final_opportunity_count=len(projects),
+        )
         log.info("天津交通工程公告采集完成 candidates=%s opportunities=%s", len(entries), len(projects))
         return projects
 

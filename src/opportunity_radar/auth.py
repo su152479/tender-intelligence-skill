@@ -1,6 +1,7 @@
 import logging, os
 from pathlib import Path
 from playwright.sync_api import sync_playwright
+from .network import NetworkPolicy
 
 log = logging.getLogger(__name__)
 
@@ -11,13 +12,28 @@ class LoginManager:
         self.auth_dir.mkdir(parents=True, exist_ok=True)
         timeout = int(os.getenv("RADAR_LOGIN_TIMEOUT_SECONDS", "300")) * 1000
         channel = os.getenv("RADAR_BROWSER_CHANNEL", "msedge").strip() or None
+        network = NetworkPolicy.from_env()
         with sync_playwright() as p:
             # Use the locally installed, user-facing browser when available. This does
             # not bypass CAPTCHA; it only gives the user a normal browser for login.
-            browser = p.chromium.launch(headless=False, channel=channel)
-            context = browser.new_context()
-            page = context.new_page()
-            page.goto(source.get("login_url", source["url"]), wait_until="domcontentloaded")
+            routes = [False, True] if network.has_direct_fallback else [False]
+            browser = context = page = None
+            for index, direct in enumerate(routes):
+                browser = p.chromium.launch(
+                    headless=False, channel=channel,
+                    **network.browser_launch_options(direct=direct),
+                )
+                context = browser.new_context()
+                page = context.new_page()
+                try:
+                    page.goto(source.get("login_url", source["url"]), wait_until="domcontentloaded")
+                    break
+                except Exception as exc:
+                    browser.close()
+                    if index + 1 >= len(routes):
+                        raise
+                    log.warning("%s 登录页代理访问失败，切换直连仅重试一次：%s", source["id"], exc)
+            assert browser is not None and context is not None and page is not None
             page.set_default_timeout(timeout)
             success_url = source.get("login_success_url_contains")
             if success_url:

@@ -1,0 +1,78 @@
+products:
+  - name: 箱梁
+    direct_keywords: [箱梁, 预制梁, T梁, 小箱梁]
+    method_keywords: [预制梁场, 架梁, 桥梁上部结构]
+    direction_keywords: [简支梁, 预制梁桥, 梁板工程]
+    exclusion_keywords: [钢箱梁, 现浇箱梁, 现浇连续梁, 钢混组合梁]
+    project_types: [公路, 铁路, 市政桥梁]
+    score: 30
+  - name: 管片
+    direct_keywords: [管片, 混凝土管片]
+    method_keywords: [盾构, 盾构区间, 盾构隧道]
+    direction_keywords: [地铁区间, 隧道工程, 轨道交通]
+    exclusion_keywords: [既有管片检测, 管片病害检测, 管片修复, 盾构机, 盾构设备, 盾构刀具, 盾构油脂, 盾构临电]
+    project_types: [轨道交通, 隧道]
+    score: 35
+  - name: PC构件
+    direct_keywords: [PC构件, 预制构件, 小型预制构件, 预制混凝土构件, 预制墙板, 轻质墙板, 装配式墙板, 叠合板, 预制楼梯, 预制阳台]
+    method_keywords: [装配式建筑, 装配式混凝土, 预制装配]
+    direction_keywords: [装配率, 预制率, 工业化建造, 装配式结构]
+    exclusion_keywords: [现浇混凝土结构, 传统现浇结构]
+    project_types: [房建, 装配式建筑]
+    score: 30
+  - name: 风塔
+    direct_keywords: [风塔, 混塔, 风电塔筒, 混凝土塔筒]
+    method_keywords: [塔筒安装, 风机基础]
+    direction_keywords: [混塔风电场, 混凝土高塔筒]
+    exclusion_keywords: [钢制塔筒, 钢塔筒, 钢塔架]
+    project_types: [风电]
+    score: 35
+  - name: 圆形顶管
+    direct_keywords: [圆形顶管, 混凝土顶管, 顶管管节]
+    method_keywords: [顶管施工, 非开挖, 泥水平衡顶管]
+    direction_keywords: [顶管工作井, 顶管接收井, 顶进井, 非开挖管线]
+    exclusion_keywords: [开槽施工, 明挖施工, 钢管顶管, 球墨铸铁管顶管]
+    project_types: [市政管网, 水务]
+    score: 30
+  - name: 矩形顶管
+    direct_keywords: [矩形顶管, 矩形管节]
+    method_keywords: [矩形顶进, 顶进通道]
+    direction_keywords: [地下通道, 人行过街通道, 综合管廊, 箱涵]
+    exclusion_keywords: [现浇箱涵, 明挖箱涵]
+    project_types: [地下通道, 市政]
+    score: 35
+  - name: 水工预制件
+    direct_keywords: [水工预制件, 预制沉箱, 护岸块, 扭王字块, 四脚空心块]
+    method_keywords: [沉箱预制, 预制护岸, 预制防浪块]
+    direction_keywords: [码头, 港池, 护岸, 水闸, 泵站, 堤防, 水利工程]
+    exclusion_keywords: [现浇护岸, 现浇沉箱, 防洪影响评价, 水土保持方案, 规划编制, 报告编制, 技术咨询]
+    project_types: [港航, 水利]
+    score: 30
+rules:
+  direct_product_score: 90
+  direct_intent_scores:
+    采购: 92
+    生产: 88
+    安装: 85
+    施工使用: 82
+    可能使用: 80
+    检测维护: 20
+    既有设施: 20
+  construction_method_score: 75
+  direction_inference_score: 55
+  explicit_need_lead_score: 85
+  explicit_need_opportunity_score: 35
+  method_opportunity_score: 20
+  direction_opportunity_score: 5
+  adjacent_product_lead_score: 70
+  adjacent_procurement_cap: 8
+  unlinked_procurement_cap: 15
+  unrelated_procurement_method_cap: 10
+  negative_opportunity_cap: 10
+  direct_opportunity_threshold: 70
+  title_evidence_bonus: 3
+  product_candidate_min_score: 50
+  historical_or_inspection_score: 20
+  negative_evidence_penalty: 20
+  separate_procurement_evidence_score: 90
+  max_score: 100

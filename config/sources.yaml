@@ -3,45 +3,56 @@ sources:
     name: 中交集团供应链管理信息系统
     url: https://sp.iccec.cn/
     public_url: https://zjzcw.iccec.cn/
-    regions: []
+    agent_id: 107197
+    regions: [北京市, 天津市, 河北省]
+    region_codes: ['110000', '120000', '130000']
     login: manual_playwright
     collection: playwright_public
     enabled: true
-    keywords_from_profile: true
+    keywords: [箱梁, 管片, PC构件, 风塔, 圆形顶管, 矩形顶管, 水工预制件]
+    search_keywords: [箱梁, 预制梁, 桥梁, 管片, 盾构, PC构件, 预制构件, 装配式, 风塔, 塔筒, 顶管, 排水管网, 泵站, 水工]
   - id: cscec_yzw
     name: 中建云筑网
     url: https://www.yzw.cn/
     search_url: https://xy.yzw.cn/business-opportunity/searcher
     login_url: https://xy.yzw.cn/business-opportunity/searcher?tab=bid-purchase
     login_success_url_contains: xy.yzw.cn/
-    regions: []
+    regions: [北京市, 天津市, 河北省]
+    region_codes: ['110000', '120000', '130000']
     login: manual_playwright
     collection: playwright
     enabled: true
-    keywords_from_profile: true
+    keywords: [箱梁, 管片, PC构件, 风塔, 圆形顶管, 矩形顶管, 水工预制件]
+    search_keywords: [箱梁, 预制梁, 桥梁, 管片, 盾构, 预制构件, 装配式, 风塔, 顶管, 水工]
   - id: crecg_luban
     name: 中铁鲁班网
     url: https://www.crecgec.com/
     public_url: https://www.crecgec.com/
-    regions: []
+    portal_url: https://www.crecgec.com/portal
+    regions: [北京市, 天津市, 河北省]
+    region_codes: ['110000', '120000', '130000']
     login: none_public
-    collection: requests_html
+    collection: requests_html_playwright_public_history
     enabled: true
-    keywords_from_profile: true
+    keywords: [箱梁, 管片, PC构件, 风塔, 圆形顶管, 矩形顶管, 水工预制件]
+    opportunity_keywords: [预制梁, 梁板, 桥梁, 路基, 附属工程, 隧道, 盾构, 顶管, 管网, 泵站, 水利, 风电, 塔筒, 装配式, 预制构件, 土建工程, 主体工程]
+    history_search_terms: [北京, 天津, 河北, 雄安, 京密]
   - id: crcc_ec
     name: 铁建云采
     url: https://www.crccep.com/
     login: manual_playwright
     collection: playwright
     enabled: true
-    keywords_from_profile: true
+    keywords: [箱梁, 管片, PC构件, 顶管]
+    search_keywords: [箱梁, 预制梁, 桥梁, 管片, 盾构, 预制构件, 装配式, 顶管, 管网, 泵站]
   - id: powerchina
     name: 中电建物资采购平台
     url: https://ec.powerchina.cn/
     login: manual_playwright
     collection: playwright
     enabled: true
-    keywords_from_profile: true
+    keywords: [风塔, 水工预制件, 预制构件, 管片]
+    search_keywords: [风塔, 塔筒, 水工, 预制构件, 桥梁, 管片, 盾构, 顶管, 泵站, 码头]
   - id: beijing_ggzy
     name: 北京市公共资源交易服务平台
     url: https://ggzyfw.beijing.gov.cn/
@@ -50,16 +61,17 @@ sources:
     login: none_public
     collection: requests_html_system_tls_fallback
     enabled: true
-    keywords: [施工, 工程总承包, EPC]
+    keywords: [施工, 工程总承包, EPC, 城市更新, 城中村改造, 老旧小区改造, 地下管网更新, 水利工程, 河道治理, 防洪排涝, 灌区, 泵站, 水闸]
   - id: ccgp
     name: 中国政府采购网
     url: https://www.ccgp.gov.cn/
     list_url: https://www.ccgp.gov.cn/cggg/dfgg/gkzb/
-    regions: []
+    regions: [北京市, 天津市, 河北省]
+    region_labels: [北京, 天津, 河北]
     login: none_public
     collection: requests_html
     enabled: true
-    keywords: [施工, 工程总承包, EPC]
+    keywords: [施工, 工程总承包, EPC, 城市更新, 城中村改造, 老旧小区改造, 地下管网更新, 水利工程, 河道治理, 防洪排涝, 灌区, 泵站, 水闸]
   - id: hebei_ggzy
     name: 京冀公共资源交易跨区域信息专区（河北）
     url: https://ggzyfw.beijing.gov.cn/xtgghbzbgg/
@@ -68,7 +80,7 @@ sources:
     login: none_public
     collection: requests_html_system_tls_fallback
     enabled: true
-    keywords: [施工, 工程总承包, EPC, 桥梁, 管网]
+    keywords: [施工, 工程总承包, EPC, 桥梁, 管网, 城市更新, 城中村改造, 老旧小区改造, 地下管网更新, 水利工程, 河道治理, 防洪排涝, 灌区, 泵站, 水闸]
   - id: tianjin_transport
     name: 天津市交通运输委员会招标公告
     url: https://jtys.tj.gov.cn/
@@ -77,4 +89,13 @@ sources:
     login: none_public
     collection: requests_html
     enabled: true
-    keywords: [施工, 招标计划, 桥梁, 港口, 水工]
+    keywords: [施工, 招标计划, 桥梁, 港口, 水工, 城市更新, 地下管网更新, 河道治理, 防洪排涝, 泵站, 水闸]
+  - id: jjj_portal
+    name: 京津冀公共资源交易协同专区
+    url: https://ggzyfw.beijing.gov.cn/
+    list_url: https://ggzyfw.beijing.gov.cn/jjjxtlm/index.html
+    regions: [北京市, 天津市, 河北省, 河北省雄安新区]
+    login: none_public
+    collection: requests_html_system_tls_fallback
+    enabled: true
+    keywords: [招标计划, 施工招标, 中标候选人公示, 中标结果, 桥梁, 路基, 隧道, 管网, 水工, 城市更新, 城中村改造, 老旧小区改造, 地下管网更新, 河道治理, 防洪排涝, 灌区, 泵站, 水闸]

@@ -1,45 +1,20 @@
-"""Configuration-driven region matching helpers."""
+"""Conservative Beijing-Tianjin-Hebei text matching helpers."""
 
-import os
-from functools import lru_cache
-
-from ..config import load_yaml
-
-
-@lru_cache(maxsize=1)
-def region_catalog() -> dict:
-    return load_yaml("regions.yaml").get("regions", {})
-
-
-def target_regions(source_regions: list[str] | None = None) -> list[str]:
-    override = os.getenv("RADAR_TARGET_REGIONS", "").strip()
-    if override:
-        return [item.strip() for item in override.split(",") if item.strip()]
-    return list(source_regions or region_catalog().keys())
+REGION_MARKERS = {
+    "北京市": ("北京", "京密", "京雄", "京平", "京承", "京津冀"),
+    "天津市": ("天津", "滨海新区", "京津冀"),
+    "河北省": (
+        "河北", "雄安", "石家庄", "唐山", "秦皇岛", "邯郸", "邢台", "保定",
+        "张家口", "承德", "沧州", "廊坊", "衡水", "定州", "辛集", "京津冀",
+    ),
+}
 
 
-def infer_region(text: str, allowed_regions: list[str] | None = None) -> str:
+def infer_region(text: str) -> str:
     value = text or ""
-    allowed = set(target_regions(allowed_regions))
-    matches = []
-    for name, details in region_catalog().items():
-        if name not in allowed:
-            continue
-        markers = details.get("markers", [])
-        if any(marker in value for marker in markers):
-            matches.append(name)
+    matches = [region for region, markers in REGION_MARKERS.items() if any(marker in value for marker in markers)]
     return "、".join(matches)
 
 
-def is_target_region(text: str, allowed_regions: list[str] | None = None) -> bool:
-    return bool(infer_region(text, allowed_regions))
-
-
-def target_region_codes(source_regions: list[str] | None = None) -> list[str]:
-    catalog = region_catalog()
-    return [catalog[name]["code"] for name in target_regions(source_regions) if name in catalog]
-
-
-def target_region_labels(source_regions: list[str] | None = None) -> list[str]:
-    catalog = region_catalog()
-    return [catalog[name]["label"] for name in target_regions(source_regions) if name in catalog]
+def is_jing_jin_ji(text: str) -> bool:
+    return bool(infer_region(text))
